@@ -129,6 +129,12 @@
     border-radius:50%; font-size:17px; cursor:pointer; line-height:1; font-family:inherit;
   }
   .modal-close:hover { background:rgba(255,255,255,.18); }
+  .modal-tools { display:flex; align-items:center; gap:12px; }
+  .modal-link {
+    font-size:12.5px; color:var(--acc2); text-decoration:none;
+    border-bottom:1px solid rgba(255,138,92,.4); padding-bottom:1px;
+  }
+  .modal-link:hover { color:#fff; }
   .hot {
     position:absolute; top:12px; left:12px; z-index:2;
     background:linear-gradient(120deg,var(--acc),var(--acc2)); color:#fff;
@@ -347,7 +353,10 @@
     <video id="player" controls playsinline webkit-playsinline x5-playsinline preload="auto" src=""></video>
     <div class="modal-bar">
       <span class="t" id="vtitle">作品视频</span>
-      <button class="modal-close" onclick="closeVid()" aria-label="关闭">✕</button>
+      <span class="modal-tools">
+        <a id="vopen" class="modal-link" href="#" target="_blank" rel="noopener">新窗口打开</a>
+        <button class="modal-close" onclick="closeVid()" aria-label="关闭">✕</button>
+      </span>
     </div>
   </div>
 </div>
@@ -356,20 +365,23 @@
   var modal = document.getElementById('modal');
   var player = document.getElementById('player');
   var vtitle = document.getElementById('vtitle');
+  var vopen = document.getElementById('vopen');
 
   function openVid(file, title) {
     var url = 'videos/' + file;
     vtitle.textContent = title || '作品视频';
+    vopen.href = url;
     modal.classList.add('on');
     document.body.style.overflow = 'hidden';
-    if (!player.getAttribute('src')) {
-      player.setAttribute('src', url);
-    } else {
-      player.setAttribute('src', url);
-    }
+    player.setAttribute('src', url);
     try { player.currentTime = 0; } catch(e) {}
     var p = player.play();
-    if (p && p.catch) { p.catch(function(){}); }
+    if (p && p.catch) {
+      p.catch(function(err) {
+        // 自动播放被拦或解码失败：不报错，用户可手动控制或新窗口打开
+        console.warn('play failed:', err);
+      });
+    }
   }
   function closeVid() {
     try { player.pause(); } catch(e) {}
